@@ -19,7 +19,10 @@ Makefile.in
 Makefile
 /config.log
 /config.status
-/src/.deps/
+.deps/
 *.o
 /src/smarthome.server
+
+/.settings/
+.dirstamp
 

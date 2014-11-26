@@ -9,8 +9,9 @@ AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE()
 
 CXXFLAGS="$CXXFLAGS -std=c++1y -Wno-deprecated"
-LDFLAGS="$LDFLAGS -pthread -Wl,-rpath=/usr/local/lib/gcc49"
 AC_PROG_CXX
+
+AX_PTHREAD(, [AC_MSG_ERROR([smarthome needs pthread, but it was not found in your system])])
 
 AX_BOOST_BASE([1.55],,[AC_MSG_ERROR([smarthome needs Boost, but it was not found in your system])])
 AX_BOOST_SYSTEM

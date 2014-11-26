@@ -8,8 +8,8 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE()
 
-CXXFLAGS="-std=c++1y"
-LDFLAGS="-pthread -Wl,-rpath=/usr/local/lib/gcc49"
+CXXFLAGS="$CXXFLAGS -std=c++1y -Wno-deprecated"
+LDFLAGS="$LDFLAGS -pthread -Wl,-rpath=/usr/local/lib/gcc49"
 AC_PROG_CXX
 
 AX_BOOST_BASE([1.55],,[AC_MSG_ERROR([smarthome needs Boost, but it was not found in your system])])

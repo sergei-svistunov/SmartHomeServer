@@ -3,14 +3,15 @@
   <head>
   </head>
   <body>
-  	<script type="text/javascript">
-  	  var ws = new WebSocket("ws://home.q-bit.ru:38080/devices/");
-  	  ws.onopen = function(evt) {console.log("Opened", evt)};
-  	  ws.onclose = function(evt) {console.log("Closed", evt)};
-  	  ws.onmessage = function(evt) {console.log("Message", evt)};
-  	  ws.onerror = function(evt) {console.log("Error", evt)};
-  	</script>
+      <script type="text/javascript">
+        var ws = new WebSocket("ws://localhost:38080/devices/");
+        ws.onopen = function(evt) {console.log("Opened", evt)};
+        ws.onclose = function(evt) {console.log("Closed", evt)};
+        ws.onmessage = function(evt) {console.log("Message", evt)};
+        ws.onerror = function(evt) {console.log("Error", evt)};
+      </script>
 
-  	<button onclick="ws.send('test')">Test</button>
+      <button onclick="ws.send('A1:ON')">A1 ON</button>
+      <button onclick="ws.send('A1:OFF')">A1 OFF</button>
   </body>
 </html>

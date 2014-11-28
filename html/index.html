@@ -1,17 +1,77 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://yastatic.net/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
   </head>
   <body>
-      <script type="text/javascript">
-        var ws = new WebSocket("ws://localhost:38080/devices/");
-        ws.onopen = function(evt) {console.log("Opened", evt)};
-        ws.onclose = function(evt) {console.log("Closed", evt)};
-        ws.onmessage = function(evt) {console.log("Message", evt)};
-        ws.onerror = function(evt) {console.log("Error", evt)};
-      </script>
 
-      <button onclick="ws.send('A1:ON')">A1 ON</button>
-      <button onclick="ws.send('A1:OFF')">A1 OFF</button>
+    <div id="dashboard" class="container" style="display: none;">
+      <div class="row">
+        <div class="col-xs-3 well">
+          <div class="btn-group col-xs-12" data-toggle="buttons">
+            <label class="btn btn-success btn-lg btn-block" id="btnA1">
+              <input type="checkbox" autocomplete="off">Bedroom's light
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="connect-dlg" class="container">
+      <div class="alert alert-danger" role="alert">
+        <strong>No connection to SmartHome!</strong><br>
+        <button id="reconnect-btn" type="button" class="btn btn-primary" data-loading-text="Connecting..." autocomplete="off">Reconnect</button>
+      </div>
+    </div>
+
+    <script src="https://yastatic.net/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://yastatic.net/jquery-ui/1.11.2/jquery-ui.min.js"></script>
+    <script src="https://yastatic.net/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+      var ws;
+      function initWS() {
+          $('#reconnect-btn').button('loading');
+          ws = new WebSocket("ws://localhost:38080/devices/");
+
+          ws.onopen = function(evt) {
+              console.log("Opened", evt);
+              $('#reconnect-btn').button('reset');
+              $('#connect-dlg').hide();
+              $('#dashboard').show();
+          };
+
+          ws.onclose = function(evt) {
+              console.log("Closed", evt);
+              $('#dashboard').hide();
+              $('#connect-dlg').show();
+          };
+
+          ws.onmessage = function(evt) {console.log("Message", evt)};
+
+          ws.onerror = function(evt) {
+              console.log("Error", evt);
+              $('#reconnect-btn').button('reset');
+          };
+      }
+
+      $('#reconnect-btn').on('click', function() {
+          initWS();
+      });
+
+      $('#btnA1').on('click', function() {
+          if ($(this).hasClass('active')) {
+              ws.send('A1:OFF');
+          } else {
+              ws.send('A1:ON');
+          }
+      });
+
+      initWS();
+    </script>
+
   </body>
 </html>

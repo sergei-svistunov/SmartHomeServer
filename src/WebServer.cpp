@@ -118,7 +118,7 @@ bool intToX10Device(uint8_t device, X10::Device& result) {
 
 WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
         _X10_Controller(X10_Controller) {
-    _server = new SocketServer<WS>(port, 1);
+    _server = new SocketServer<WS>(port, 4);
 
     LOG(INFO)<< "Start server";
     auto& devices = _server->endpoint["^/devices/?$"];

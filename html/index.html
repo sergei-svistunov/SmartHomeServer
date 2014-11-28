@@ -7,9 +7,16 @@
     <link href="https://yastatic.net/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
   </head>
   <body>
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">SmartHome</a>
+        </div>
+      </div>
+    </nav>
 
-    <div id="dashboard" class="container" style="display: none;">
-      <div class="row">
+    <div class="container">
+      <div id="dashboard" class="row" style="display: none;">
         <div class="col-xs-3 well">
           <div class="btn-group col-xs-12" data-toggle="buttons">
             <label class="btn btn-success btn-lg btn-block" id="btnA1">
@@ -18,12 +25,12 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <div id="connect-dlg" class="container">
-      <div class="alert alert-danger" role="alert">
-        <strong>No connection to SmartHome!</strong><br>
-        <button id="reconnect-btn" type="button" class="btn btn-primary" data-loading-text="Connecting..." autocomplete="off">Reconnect</button>
+      <div id="connect-dlg" class="row">
+        <div class="alert alert-danger" role="alert">
+          <strong>No connection to SmartHome!</strong><br>
+          <button id="reconnect-btn" type="button" class="btn btn-primary" data-loading-text="Connecting..." autocomplete="off">Reconnect</button>
+        </div>
       </div>
     </div>
 

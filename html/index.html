@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://yastatic.net/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="https://yastatic.net/jquery-ui/1.11.2/themes/smoothness/jquery-ui.min.css" rel="stylesheet">
   </head>
   <body>
     <nav class="navbar navbar-default" role="navigation">
@@ -19,8 +20,9 @@
       <div id="dashboard" class="row" style="display: none;">
         <div class="col-xs-3 well">
           <div class="btn-group col-xs-12" data-toggle="buttons">
+            <div id="volumeA1" style="margin-bottom: 10px;"></div>
             <label class="btn btn-success btn-lg btn-block" id="btnA1">
-              <input type="checkbox" autocomplete="off">Bedroom's light
+              <input type="checkbox" autocomplete="off">Bedroom's light (<span id="volumeA1-label"></span>%)
             </label>
           </div>
         </div>
@@ -69,10 +71,21 @@
           initWS();
       });
 
+      $('#volumeA1').slider({
+          range: "min",
+          value: 1,
+          min: 1,
+          max: 23,
+          slide: function(event, ui) {
+              $("#volumeA1-label").text(Math.round($('#volumeA1').slider('value') / ($('#volumeA1').slider('option', 'max') - 1) * 100));
+          }
+      });
       $('#btnA1').on('click', function() {
           if ($(this).hasClass('active')) {
+              $('#volumeA1').slider('disable');
               ws.send('A1:OFF');
           } else {
+              $('#volumeA1').slider('enable');
               ws.send('A1:ON');
           }
       });

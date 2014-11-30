@@ -8,5 +8,5 @@ smarthome_server_SOURCES = smarthome.cpp \
 
 smarthome_server_CPPFLAGS = -I../simple_ws_server $(PTHREAD_CFLAGS) $(BOOST_CPPFLAGS) ${GLOG_CFLAGS} ${OPENSSL_CFLAGS}
 smarthome_server_LDADD = $(PTHREAD_CFLAGS) $(PTHREAD_LIBS) $(BOOST_LDFLAGS) \
- $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(BOOST_THREAD_LIB) \
+ $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) \
  ${GLOG_LIBS} ${OPENSSL_LIBS} 

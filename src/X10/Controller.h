@@ -4,6 +4,9 @@
 #include <stdint.h>
 
 #include <string>
+#include <list>
+#include <thread>
+#include <mutex>
 
 using namespace std;
 
@@ -47,10 +50,14 @@ public:
     Controller(string TTY);
     virtual ~Controller();
 
-    bool SetAddr(Home home, Device device, uint8_t repeats = 2);
-    bool SendCommand(Home home, Command command, uint8_t repeats = 2);
     void SendOff(Home home, Device device);
     void SendOn(Home home, Device device);
+    void SendStatusRequest(Home home, Device device);
+
+protected:
+    bool SetAddr(Home home, Device device, uint8_t repeats = 2);
+    bool SendCommand(Home home, Command command, uint8_t repeats = 2);
+
 private:
     uint8_t _GetHeader(uint8_t repeats, HeaderType type, bool extended) {
         return (repeats << 3) | (1 << 2) | (type == HeaderType::FUNCTION ? 1 << 1 : 0) | (extended ? 1 : 0);
@@ -58,7 +65,9 @@ private:
     bool _WriteWithConfirm(void* buffer, size_t length);
     void _RecieveData();
 
-    int fd;
+    int _fd;
+    mutex _fdMutex;
+    list<pair<Home, Device>> _recievedAddresses;
 };
 
 } /* namespace X10 */

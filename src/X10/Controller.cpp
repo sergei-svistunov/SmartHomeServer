@@ -44,13 +44,20 @@ std::ostream& operator<<(std::ostream& os, Command command) {
     return os;
 }
 
-Controller::Controller(string TTY) {
-    fd = open(TTY.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+std::ostream& operator<<(std::ostream& os, uint8_t buffer[10]) {
+    for (auto i = 0; i < 10; ++i)
+        os << static_cast<unsigned int>(buffer[i]) << ' ';
 
-    if (fd == -1) {
+    return os;
+}
+
+Controller::Controller(string TTY) {
+    _fd = open(TTY.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+
+    if (_fd == -1) {
         throw runtime_error("Cannot open " + TTY);
     } else {
-        fcntl(fd, F_SETFL, 0);
+        fcntl(_fd, F_SETFL, 0);
     }
 
     struct termios portSettings;
@@ -72,25 +79,41 @@ Controller::Controller(string TTY) {
 
     cfmakeraw(&portSettings);
 
-    tcsetattr(fd, TCSANOW, &portSettings);
-    tcflush(fd, TCIOFLUSH); // Clear IO buffer
+    tcsetattr(_fd, TCSANOW, &portSettings);
+    tcflush(_fd, TCIOFLUSH); // Clear IO buffer
 
-    /*	while (1) {
-     uint8_t data;
-     auto n = read(fd, &data, 1);
+    thread checkRecieveThread([this]() {
+        const timespec sleepTime = {0, 500000000}; // Half second
+            timespec remainingTime;
 
-     LOG(INFO)<< n << " " << (unsigned int)data;
-
-     if (n > 0 && data == 0x5a) {
-     LOG(INFO)<< "Can read data";
-     _RecieveData();
-     break;
-     }
-     }*/
+            while (true) {
+                _RecieveData();
+                nanosleep(&sleepTime, &remainingTime);
+            }
+        });
+    checkRecieveThread.detach();
 }
 
 Controller::~Controller() {
 
+}
+
+void Controller::SendOff(Home home, Device device) {
+    _fdMutex.lock();
+    SetAddr(home, device) && SendCommand(home, Command::OFF);
+    _fdMutex.unlock();
+}
+
+void Controller::SendOn(Home home, Device device) {
+    _fdMutex.lock();
+    SetAddr(home, device) && SendCommand(home, Command::ON);
+    _fdMutex.unlock();
+}
+
+void Controller::SendStatusRequest(Home home, Device device) {
+    _fdMutex.lock();
+    SetAddr(home, device) && SendCommand(home, Command::STATUS_REQUEST);
+    _fdMutex.unlock();
 }
 
 bool Controller::SetAddr(Home home, Device device, uint8_t repeats) {
@@ -111,41 +134,20 @@ bool Controller::SendCommand(Home home, Command command, uint8_t repeats) {
     return _WriteWithConfirm(data, 2);
 }
 
-void Controller::SendOff(Home home, Device device) {
-    SetAddr(home, device) && SendCommand(home, Command::OFF);
-}
-
-void Controller::SendOn(Home home, Device device) {
-    SetAddr(home, device) && SendCommand(home, Command::ON);
-}
-
 bool Controller::_WriteWithConfirm(void* buffer, size_t length) {
     uint8_t dataCheckSum = 0;
     for (auto i = 0; i < length; ++i)
         dataCheckSum += ((uint8_t*) buffer)[i];
 
-    for (auto i = 1; i <= 10; ++i) {
-        auto n = write(fd, buffer, length);
+    for (auto i = 1; i <= 3; ++i) {
+        auto n = write(_fd, buffer, length);
         if (n != length) {
             LOG(INFO)<< "  Cannot write data (#" << i << ")";
             continue;
         }
 
-        struct timeval timeout = { 10, 0 };
-        fd_set rdfs;
-        FD_SET(fd, &rdfs);
-        auto res = select(fd + 1, &rdfs, NULL, NULL, &timeout);
-
-        if (res < 0) {
-            LOG(INFO)<< "  Select before checksum is failed";
-            continue;
-        } else if (res == 0) {
-            LOG(INFO) << " Select before checksum has timeout";
-            continue;
-        }
-
         uint8_t checkSum;
-        read(fd, &checkSum, 1);
+        read(_fd, &checkSum, 1);
         LOG(INFO)<< "  Checksum (#" << i << ") = " << static_cast<unsigned int>(checkSum);
 
         if (checkSum != dataCheckSum) {
@@ -154,20 +156,10 @@ bool Controller::_WriteWithConfirm(void* buffer, size_t length) {
         }
 
         uint8_t zero = 0;
-        write(fd, &zero, 1);
-
-        res = select(fd + 1, &rdfs, NULL, NULL, &timeout);
-
-        if (res < 0) {
-            LOG(INFO)<< "  Confirm select failed (#" << i << ")";
-            continue;
-        } else if (res == 0) {
-            LOG(INFO) << "  Confirm select timeout (#" << i << ")";
-            continue;
-        }
+        write(_fd, &zero, 1);
 
         uint8_t confirm;
-        read(fd, &confirm, 1);
+        read(_fd, &confirm, 1);
         if (confirm != 0x55) {
             LOG(INFO)<< "  Invalid confirm (#" << i << ") (" << static_cast<unsigned int>(confirm) << ")";
             continue;
@@ -180,32 +172,55 @@ bool Controller::_WriteWithConfirm(void* buffer, size_t length) {
     return false;
 }
 
-/* Call it on receiving 0x5a*/
 void Controller::_RecieveData() {
-    uint8_t confirm = 0xc3;
-    write(fd, &confirm, 1);
+    _fdMutex.lock();
 
-    struct timeval timeout = { 10, 0 };
+    // Is controller has data?
+    struct timeval timeout = { 0, 0 };
     fd_set rdfs;
-    FD_SET(fd, &rdfs);
-    auto res = select(fd + 1, &rdfs, NULL, NULL, &timeout);
+    FD_SET(_fd, &rdfs);
+    auto res = select(_fd + 1, &rdfs, NULL, NULL, &timeout);
 
-    if (res < 0) {
-        LOG(INFO)<< "Recieve data select failed";
-        return;
-    } else if (res == 0) {
-        LOG(INFO) << "Recieve data select timeout";
+    if (res < 1) {
+        _fdMutex.unlock();
         return;
     }
 
-    unsigned short int buffer[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    auto n = read(fd, buffer, 10);
+    uint8_t flagByte;
+    auto n0 = read(_fd, &flagByte, 1);
+    if (n0 != 1 || flagByte != 0x5a) {
+        _fdMutex.unlock();
+        return;
+    }
 
-    res = select(fd + 1, &rdfs, NULL, NULL, &timeout);
-    auto n1 = read(fd, buffer + 1, 10);
+    LOG(INFO)<< "X10 Controller has data";
 
-    vector<unsigned short int> tmp(buffer, buffer + sizeof(buffer) / sizeof(unsigned short int));
-    LOG(INFO)<<"Recieved " << n << ": " << n1 << "| " << tmp;
+    uint8_t confirm = 0xc3;
+    write(_fd, &confirm, 1);
+
+    uint8_t bytesCount;
+    auto n = read(_fd, &bytesCount, 1);
+
+    uint8_t buffer[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+    size_t n1 = 0;
+    while (n1 < bytesCount)
+        n1 += read(_fd, buffer + n1, bytesCount - n1);
+
+    LOG(INFO)<<"  Recieved data " << static_cast<unsigned int>(bytesCount) << "/" << n1 << " | " << buffer;
+
+    bitset<8> flags(buffer[0]);
+    LOG(INFO)<< "    " << flags;
+    for (auto i = 0; i < bytesCount - 1; ++i) {
+        if (flags[i]) {
+            LOG(INFO)<< "      " << (Command)(buffer[i+1] & 0x0f) << ": " << _recievedAddresses;
+            _recievedAddresses.clear();
+        } else {
+            _recievedAddresses.emplace_back((Home)((buffer[i+1] >> 4) & 0x0f), (Device)(buffer[i+1] & 0x0f));
+        }
+    }
+
+    _fdMutex.unlock();
 }
 
 }

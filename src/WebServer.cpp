@@ -1,4 +1,6 @@
 #include "WebServer.h"
+#include "json.hh"
+
 #include <glog/logging.h>
 #include <strstream>
 

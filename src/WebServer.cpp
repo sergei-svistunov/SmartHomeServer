@@ -126,18 +126,22 @@ WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
     auto& devices = _server->endpoint["^/devices/?$"];
 
     devices.onmessage = [this](auto connection, auto message) {
-        string data;
-        message->data >> data;
+        string strData;
+        message->data >> strData;
 
-        char homeId, delimeter;
-        unsigned short int deviceId;
-        string command;
-        stringstream data_ss;
-        data_ss << data;
-        data_ss >> homeId >> deviceId >> delimeter >> command;
+        LOG(INFO) << "Server: Message received: \"" << strData << "\" from " << (size_t)connection.get();
 
-        LOG(INFO) << "Server: Message received: \"" << data << "\" from " << (size_t)connection.get();
-        LOG(INFO) << "  Home: " << homeId << ",  device: " << deviceId << " -> " << command;
+        JSON::Value data = parse_string(strData);
+
+        if (data.type() != JSON::OBJECT || data["device"].type() != JSON::STRING || data["device"].as_string().length() < 2
+                || data["command"].type() != JSON::STRING) {
+            LOG(INFO) << "  Invalid JSON";
+            return;
+        }
+
+        auto deviceAddr = data["device"].as_string();
+        char homeId = deviceAddr.c_str()[0];
+        uint8_t deviceId = atoi(deviceAddr.c_str() + 1);
 
         X10::Home X10_Home;
         if (!charToX10Home(homeId, X10_Home)) {
@@ -151,6 +155,7 @@ WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
             return;
         }
 
+        auto command = data["command"].as_string();
         for (auto& c : command)
             c = toupper(c);
 
@@ -161,6 +166,7 @@ WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
         else {
             LOG(INFO) << "Invalid command: " << command;
         }
+
     };
 
     devices.onopen = [this](auto connection) {

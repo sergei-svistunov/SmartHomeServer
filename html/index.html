@@ -83,10 +83,18 @@
       $('#btnA1').on('click', function() {
           if ($(this).hasClass('active')) {
               $('#volumeA1').slider('disable');
-              ws.send('A1:OFF');
+              ws.send(JSON.stringify({
+                  device: 'A1',
+                  command: 'OFF'
+                })
+              );
           } else {
               $('#volumeA1').slider('enable');
-              ws.send('A1:ON');
+              ws.send(JSON.stringify({
+                  device: 'A1',
+                  command: 'ON'
+                })
+              );
           }
       });
 

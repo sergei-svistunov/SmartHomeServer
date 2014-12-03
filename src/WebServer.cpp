@@ -131,7 +131,13 @@ WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
 
         LOG(INFO) << "Server: Message received: \"" << strData << "\" from " << (size_t)connection.get();
 
-        JSON::Value data = parse_string(strData);
+        JSON::Value data;
+        try {
+            data = parse_string(strData);
+        } catch (runtime_error& e) {
+            LOG(INFO) << e.what();
+            return;
+        }
 
         if (data.type() != JSON::OBJECT || data["device"].type() != JSON::STRING || data["device"].as_string().length() < 2
                 || data["command"].type() != JSON::STRING) {

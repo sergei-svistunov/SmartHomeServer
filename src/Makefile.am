@@ -1,8 +1,11 @@
 AUTOMAKE_OPTIONS=subdir-objects
 
+BUILT_SOURCES=../json/build/libjson.a ../json/build/json.tab.hh
+
 bin_PROGRAMS=smarthome.server
 
 smarthome_server_SOURCES = smarthome.cpp \
+ ../json/build/json.tab.hh \
  WebServer.cpp WebServer.h \
  X10/Controller.cpp X10/Controller.h
 
@@ -12,3 +15,11 @@ smarthome_server_LDADD = $(PTHREAD_CFLAGS) $(PTHREAD_LIBS) $(BOOST_LDFLAGS) \
  $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) \
  ${GLOG_LIBS} ${OPENSSL_LIBS} \
  ../json/build/libjson.a
+ 
+../json/build:
+	mkdir  ../json/build
+ 	
+../json/build/json.tab.hh: ../json/build/libjson.a
+
+../json/build/libjson.a: ../json/build
+	cd ../json/build/ && cmake .. && make

@@ -4,55 +4,55 @@
 #include <glog/logging.h>
 #include <strstream>
 
-bool charToX10Home(char home, X10::Home& result) {
+bool charToX10Home(char home, X10::HomeID& result) {
     switch (home) {
         case 'A':
-            result = X10::Home::A;
+            result = X10::HomeID::A;
             break;
         case 'B':
-            result = X10::Home::B;
+            result = X10::HomeID::B;
             break;
         case 'C':
-            result = X10::Home::C;
+            result = X10::HomeID::C;
             break;
         case 'D':
-            result = X10::Home::D;
+            result = X10::HomeID::D;
             break;
         case 'E':
-            result = X10::Home::E;
+            result = X10::HomeID::E;
             break;
         case 'F':
-            result = X10::Home::F;
+            result = X10::HomeID::F;
             break;
         case 'G':
-            result = X10::Home::G;
+            result = X10::HomeID::G;
             break;
         case 'H':
-            result = X10::Home::H;
+            result = X10::HomeID::H;
             break;
         case 'I':
-            result = X10::Home::I;
+            result = X10::HomeID::I;
             break;
         case 'J':
-            result = X10::Home::J;
+            result = X10::HomeID::J;
             break;
         case 'K':
-            result = X10::Home::K;
+            result = X10::HomeID::K;
             break;
         case 'L':
-            result = X10::Home::L;
+            result = X10::HomeID::L;
             break;
         case 'M':
-            result = X10::Home::M;
+            result = X10::HomeID::M;
             break;
         case 'N':
-            result = X10::Home::N;
+            result = X10::HomeID::N;
             break;
         case 'O':
-            result = X10::Home::O;
+            result = X10::HomeID::O;
             break;
         case 'P':
-            result = X10::Home::P;
+            result = X10::HomeID::P;
             break;
         default:
             return false;
@@ -61,55 +61,55 @@ bool charToX10Home(char home, X10::Home& result) {
     return true;
 }
 
-bool intToX10Device(uint8_t device, X10::Device& result) {
+bool intToX10Device(uint8_t device, X10::DeviceID& result) {
     switch (device) {
         case 1:
-            result = X10::Device::D1;
+            result = X10::DeviceID::D1;
             break;
         case 2:
-            result = X10::Device::D2;
+            result = X10::DeviceID::D2;
             break;
         case 3:
-            result = X10::Device::D3;
+            result = X10::DeviceID::D3;
             break;
         case 4:
-            result = X10::Device::D4;
+            result = X10::DeviceID::D4;
             break;
         case 5:
-            result = X10::Device::D5;
+            result = X10::DeviceID::D5;
             break;
         case 6:
-            result = X10::Device::D6;
+            result = X10::DeviceID::D6;
             break;
         case 7:
-            result = X10::Device::D7;
+            result = X10::DeviceID::D7;
             break;
         case 8:
-            result = X10::Device::D8;
+            result = X10::DeviceID::D8;
             break;
         case 9:
-            result = X10::Device::D9;
+            result = X10::DeviceID::D9;
             break;
         case 10:
-            result = X10::Device::D10;
+            result = X10::DeviceID::D10;
             break;
         case 11:
-            result = X10::Device::D11;
+            result = X10::DeviceID::D11;
             break;
         case 12:
-            result = X10::Device::D12;
+            result = X10::DeviceID::D12;
             break;
         case 13:
-            result = X10::Device::D13;
+            result = X10::DeviceID::D13;
             break;
         case 14:
-            result = X10::Device::D14;
+            result = X10::DeviceID::D14;
             break;
         case 15:
-            result = X10::Device::D15;
+            result = X10::DeviceID::D15;
             break;
         case 16:
-            result = X10::Device::D16;
+            result = X10::DeviceID::D16;
             break;
         default:
             return false;
@@ -149,13 +149,13 @@ WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
         char homeId = deviceAddr.c_str()[0];
         uint8_t deviceId = atoi(deviceAddr.c_str() + 1);
 
-        X10::Home X10_Home;
+        X10::HomeID X10_Home;
         if (!charToX10Home(homeId, X10_Home)) {
             LOG(INFO) << "Invalid home id: " << homeId;
             return;
         }
 
-        X10::Device X10_Device;
+        X10::DeviceID X10_Device;
         if (!intToX10Device(deviceId, X10_Device)) {
             LOG(INFO) << "Invalid device id: " << deviceId;
             return;

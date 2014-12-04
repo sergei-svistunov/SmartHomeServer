@@ -18,7 +18,7 @@ using namespace std;
 
 namespace X10 {
 
-std::ostream& operator<<(std::ostream& os, Home home) {
+std::ostream& operator<<(std::ostream& os, HomeID home) {
     const char* letters = "MECKOGAINFDLPHBJ";
 
     os << letters[(uint8_t) home];
@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& os, Home home) {
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, Device device) {
+std::ostream& operator<<(std::ostream& os, DeviceID device) {
     unsigned int ids[16] = { 13, 5, 3, 11, 15, 7, 1, 9, 14, 6, 4, 12, 16, 8, 2, 10 };
 
     os << ids[(uint8_t) device];
@@ -40,6 +40,12 @@ std::ostream& operator<<(std::ostream& os, Command command) {
             "STATUS_REQUEST" };
 
     os << commands[(uint8_t) command];
+
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, Address address) {
+    os << address.homeId << address.deviceId;
 
     return os;
 }
@@ -98,25 +104,29 @@ Controller::~Controller() {
 
 }
 
-void Controller::SendOff(Home home, Device device) {
+void Controller::AddDevice(Address address, BaseDevice& device) {
+    _devices[address] = device;
+}
+
+void Controller::SendOff(HomeID home, DeviceID device) {
     _fdMutex.lock();
     SetAddr(home, device) && SendCommand(home, Command::OFF);
     _fdMutex.unlock();
 }
 
-void Controller::SendOn(Home home, Device device) {
+void Controller::SendOn(HomeID home, DeviceID device) {
     _fdMutex.lock();
     SetAddr(home, device) && SendCommand(home, Command::ON);
     _fdMutex.unlock();
 }
 
-void Controller::SendStatusRequest(Home home, Device device) {
+void Controller::SendStatusRequest(HomeID home, DeviceID device) {
     _fdMutex.lock();
     SetAddr(home, device) && SendCommand(home, Command::STATUS_REQUEST);
     _fdMutex.unlock();
 }
 
-bool Controller::SetAddr(Home home, Device device, uint8_t repeats) {
+bool Controller::SetAddr(HomeID home, DeviceID device, uint8_t repeats) {
     uint8_t data[2] = { _GetHeader(repeats, HeaderType::ADDRESS, false), (uint8_t) ((uint8_t) home << 4
             | (uint8_t) device) };
 
@@ -125,7 +135,7 @@ bool Controller::SetAddr(Home home, Device device, uint8_t repeats) {
     return _WriteWithConfirm(data, 2);
 }
 
-bool Controller::SendCommand(Home home, Command command, uint8_t repeats) {
+bool Controller::SendCommand(HomeID home, Command command, uint8_t repeats) {
     uint8_t data[2] = { _GetHeader(repeats, HeaderType::FUNCTION, false), (uint8_t) ((uint8_t) home << 4
             | (uint8_t) command) };
 
@@ -207,7 +217,7 @@ void Controller::_RecieveData() {
     while (n1 < bytesCount)
         n1 += read(_fd, buffer + n1, bytesCount - n1);
 
-    LOG(INFO)<<"  Recieved data " << static_cast<unsigned int>(bytesCount) << "/" << n1 << " | " << buffer;
+    LOG(INFO)<<"  Recieved data " << static_cast<unsigned int>(bytesCount) << " | " << buffer;
 
     bitset<8> flags(buffer[0]);
     LOG(INFO)<< "    " << flags;
@@ -216,7 +226,7 @@ void Controller::_RecieveData() {
             LOG(INFO)<< "      " << (Command)(buffer[i+1] & 0x0f) << ": " << _recievedAddresses;
             _recievedAddresses.clear();
         } else {
-            _recievedAddresses.emplace_back((Home)((buffer[i+1] >> 4) & 0x0f), (Device)(buffer[i+1] & 0x0f));
+            _recievedAddresses.push_back({(HomeID)((buffer[i+1] >> 4) & 0x0f), (DeviceID)(buffer[i+1] & 0x0f)});
         }
     }
 

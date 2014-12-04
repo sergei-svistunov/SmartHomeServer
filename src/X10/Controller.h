@@ -1,10 +1,13 @@
 #ifndef X10_CONTROLLER_H_
 #define X10_CONTROLLER_H_
 
+#include "BaseDevice.h"
+
 #include <stdint.h>
 
 #include <string>
 #include <list>
+#include <map>
 #include <thread>
 #include <mutex>
 
@@ -12,12 +15,12 @@ using namespace std;
 
 namespace X10 {
 
-enum class Home
+enum class HomeID
     : uint8_t {
         M, E, C, K, O, G, A, I, N, F, D, L, P, H, B, J
 };
 
-enum class Device
+enum class DeviceID
     : uint8_t {
         D13, D5, D3, D11, D15, D7, D1, D9, D14, D6, D4, D12, D16, D8, D2, D10
 };
@@ -45,18 +48,31 @@ enum class HeaderType {
     ADDRESS, FUNCTION, UNKNOWN
 };
 
+struct Address {
+    HomeID homeId;
+    DeviceID deviceId;
+};
+
+struct ClassAddressCmp {
+    bool operator()(const Address& l, const Address& r) const {
+        return l.homeId == r.homeId ? l.deviceId < r.deviceId : l.homeId < r.homeId;
+    }
+};
+
 class Controller {
 public:
     Controller(string TTY);
     virtual ~Controller();
 
-    void SendOff(Home home, Device device);
-    void SendOn(Home home, Device device);
-    void SendStatusRequest(Home home, Device device);
+    void AddDevice(Address address, BaseDevice& device);
+
+    void SendOff(HomeID home, DeviceID device);
+    void SendOn(HomeID home, DeviceID device);
+    void SendStatusRequest(HomeID home, DeviceID device);
 
 protected:
-    bool SetAddr(Home home, Device device, uint8_t repeats = 2);
-    bool SendCommand(Home home, Command command, uint8_t repeats = 2);
+    bool SetAddr(HomeID home, DeviceID device, uint8_t repeats = 2);
+    bool SendCommand(HomeID home, Command command, uint8_t repeats = 2);
 
 private:
     uint8_t _GetHeader(uint8_t repeats, HeaderType type, bool extended) {
@@ -67,7 +83,8 @@ private:
 
     int _fd;
     mutex _fdMutex;
-    list<pair<Home, Device>> _recievedAddresses;
+    list<Address> _recievedAddresses;
+    map<Address, BaseDevice, ClassAddressCmp> _devices;
 };
 
 } /* namespace X10 */

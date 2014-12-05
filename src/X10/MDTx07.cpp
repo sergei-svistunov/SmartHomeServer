@@ -2,8 +2,7 @@
 
 namespace X10 {
 
-MDTx07::MDTx07(Address address, string& name) : BaseDevice(name) {
-    // TODO Auto-generated constructor stub
+MDTx07::MDTx07(Controller& controller, Address address, string name) : BaseDevice(controller, address, name) {
 
 }
 

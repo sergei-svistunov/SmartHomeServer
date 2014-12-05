@@ -1,13 +1,14 @@
 #ifndef X10_CONTROLLER_H_
 #define X10_CONTROLLER_H_
 
-#include "BaseDevice.h"
+//#include "BaseDevice.h"
 
 #include <stdint.h>
 
 #include <string>
 #include <list>
 #include <map>
+#include <vector>
 #include <thread>
 #include <mutex>
 
@@ -59,12 +60,30 @@ struct ClassAddressCmp {
     }
 };
 
+class Controller;
+
+class BaseDevice {
+public:
+    BaseDevice(Controller& controller, Address address, string name);
+    virtual ~BaseDevice() {}
+    const string& GetName() const {return _name;}
+
+private:
+    Controller& _controller;
+    Address _address;
+    string _name;
+};
+
+typedef map<Address, BaseDevice*, ClassAddressCmp> AddressDeviceMap;
+typedef vector<const BaseDevice*> DevicesVector;
+
 class Controller {
+    friend class BaseDevice;
 public:
     Controller(string TTY);
     virtual ~Controller();
 
-    void AddDevice(Address address, BaseDevice& device);
+    const DevicesVector GetDevices();
 
     void SendOff(HomeID home, DeviceID device);
     void SendOn(HomeID home, DeviceID device);
@@ -80,11 +99,12 @@ private:
     }
     bool _WriteWithConfirm(void* buffer, size_t length);
     void _RecieveData();
+    void _AddDevice(Address address, BaseDevice* device);
 
     int _fd;
     mutex _fdMutex;
     list<Address> _recievedAddresses;
-    map<Address, BaseDevice, ClassAddressCmp> _devices;
+    AddressDeviceMap _devices;
 };
 
 } /* namespace X10 */

@@ -57,6 +57,11 @@ std::ostream& operator<<(std::ostream& os, uint8_t buffer[10]) {
     return os;
 }
 
+BaseDevice::BaseDevice(Controller& controller, Address address, string name) :
+        _controller(controller), _address(address), _name(name) {
+    _controller._AddDevice(address, this);
+}
+
 Controller::Controller(string TTY) {
     _fd = open(TTY.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
@@ -104,9 +109,19 @@ Controller::~Controller() {
 
 }
 
-void Controller::AddDevice(Address address, BaseDevice& device) {
-    _devices[address] = device;
+const DevicesVector Controller::GetDevices() {
+    DevicesVector result;
+    result.reserve(_devices.size());
+
+    for (auto it=_devices.cbegin(); it != _devices.cend(); ++it)
+        result.push_back(it->second);
+
+    return result;
 }
+
+//map<Address, BaseDevice*>::const_iterator Controller::GetDevicesIterator() {
+//    return _devices.cbegin();
+//}
 
 void Controller::SendOff(HomeID home, DeviceID device) {
     _fdMutex.lock();
@@ -226,11 +241,15 @@ void Controller::_RecieveData() {
             LOG(INFO)<< "      " << (Command)(buffer[i+1] & 0x0f) << ": " << _recievedAddresses;
             _recievedAddresses.clear();
         } else {
-            _recievedAddresses.push_back({(HomeID)((buffer[i+1] >> 4) & 0x0f), (DeviceID)(buffer[i+1] & 0x0f)});
+            _recievedAddresses.push_back( {(HomeID)((buffer[i+1] >> 4) & 0x0f), (DeviceID)(buffer[i+1] & 0x0f)});
         }
     }
 
     _fdMutex.unlock();
+}
+
+void Controller::_AddDevice(Address address, BaseDevice* device) {
+    _devices[address] = device;
 }
 
 }

@@ -176,6 +176,10 @@ WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
     };
 
     devices.onopen = [this](auto connection) {
+        auto X10_Devices = _X10_Controller.GetDevices();
+        for (auto it=X10_Devices.cbegin(); it!=X10_Devices.cend(); ++it)
+            LOG(INFO) << (*it)->GetName();
+
         LOG(INFO) << "Server: Opened connection " << (size_t)connection.get();
         stringstream data_ss;
         data_ss << "Hello";

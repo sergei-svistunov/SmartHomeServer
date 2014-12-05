@@ -11,6 +11,8 @@ public:
     virtual ~MDTx07();
     virtual const string GetType() const {return "X10::MDTx07";}
     virtual JSON::Object GetInfo() const;
+private:
+    bool _is_on = false;
 };
 
 } /* namespace X10 */

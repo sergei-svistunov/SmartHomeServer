@@ -13,7 +13,7 @@ MDTx07::~MDTx07() {
 JSON::Object MDTx07::GetInfo() const {
     auto result = BaseDevice::GetInfo();
 
-    result["is_on"] = true;
+    result["is_on"] = _is_on;
     result["volume"] = 10;
 
     return result;

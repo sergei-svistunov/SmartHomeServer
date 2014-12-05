@@ -27,9 +27,17 @@ smartHomeApp.controller('DevicesList', function ($scope) {
 
     $scope.reconnect = function() {
         initWS($scope);
-    }
+    };
 
-    initWS($scope)
+    $scope.X10_MDTx07__btn_click = function(event) {
+        $scope.ws.send(JSON.stringify({
+            device: this.device['address'],
+            command: this.device['is_on'] ? 'OFF' : 'ON'
+        }));
+        this.device['is_on'] = !this.device['is_on'];
+    };
+
+    initWS($scope);
 });
 
 function initWS(scope) {

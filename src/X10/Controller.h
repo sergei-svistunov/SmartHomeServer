@@ -1,7 +1,7 @@
 #ifndef X10_CONTROLLER_H_
 #define X10_CONTROLLER_H_
 
-//#include "BaseDevice.h"
+#include "json.hh"
 
 #include <stdint.h>
 
@@ -67,7 +67,9 @@ public:
     BaseDevice(Controller& controller, Address address, string name);
     virtual ~BaseDevice() {}
     const string& GetName() const {return _name;}
-
+    const Address GetAddress() const {return _address;}
+    virtual const string GetType() const {return "X10::Device";}
+    virtual JSON::Object GetInfo() const;
 private:
     Controller& _controller;
     Address _address;

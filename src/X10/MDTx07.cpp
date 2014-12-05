@@ -7,7 +7,16 @@ MDTx07::MDTx07(Controller& controller, Address address, string name) : BaseDevic
 }
 
 MDTx07::~MDTx07() {
-    // TODO Auto-generated destructor stub
+
+}
+
+JSON::Object MDTx07::GetInfo() const {
+    auto result = BaseDevice::GetInfo();
+
+    result["is_on"] = true;
+    result["volume"] = 10;
+
+    return result;
 }
 
 } /* namespace X10 */

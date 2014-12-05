@@ -9,6 +9,8 @@ class MDTx07: public BaseDevice {
 public:
     MDTx07(Controller& controller, Address address, string name);
     virtual ~MDTx07();
+    virtual const string GetType() const {return "X10::MDTx07";}
+    virtual JSON::Object GetInfo() const;
 };
 
 } /* namespace X10 */

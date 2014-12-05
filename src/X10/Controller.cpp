@@ -57,10 +57,33 @@ std::ostream& operator<<(std::ostream& os, uint8_t buffer[10]) {
     return os;
 }
 
+/*
+*               BaseDevice
+*/
+
 BaseDevice::BaseDevice(Controller& controller, Address address, string name) :
         _controller(controller), _address(address), _name(name) {
     _controller._AddDevice(address, this);
 }
+
+JSON::Object BaseDevice::GetInfo() const {
+    JSON::Object info;
+
+    info["type"] = GetType();
+    info["name"] = GetName();
+
+    stringstream ss;
+    ss << GetAddress();
+    string strAddr;
+    ss >> strAddr;
+    info["address"] = strAddr;
+
+    return info;
+}
+
+/*
+*               Controller
+*/
 
 Controller::Controller(string TTY) {
     _fd = open(TTY.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);

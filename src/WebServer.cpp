@@ -176,13 +176,19 @@ WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
     };
 
     devices.onopen = [this](auto connection) {
+        JSON::Array devicesJSON;
+
         auto X10_Devices = _X10_Controller.GetDevices();
         for (auto it=X10_Devices.cbegin(); it!=X10_Devices.cend(); ++it)
-            LOG(INFO) << (*it)->GetName();
+            devicesJSON.push_back((*it)->GetInfo());
+
+        JSON::Object messageJSON;
+        messageJSON["type"] = "devicesList";
+        messageJSON["devices"] = devicesJSON;
 
         LOG(INFO) << "Server: Opened connection " << (size_t)connection.get();
         stringstream data_ss;
-        data_ss << "Hello";
+        data_ss << messageJSON;
         _server->send(connection, data_ss);
     };
 
@@ -194,17 +200,6 @@ WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
         LOG(INFO) << "Server: Error in connection " << (size_t)connection.get() << ". " <<
         "Error: " << ec << ", error message: " << ec.message();
     };
-
-//    while (true) {
-//        auto connections = server.get_connections();
-//        for (auto it = connections.cbegin(); it != connections.cend(); ++it) {
-//            stringstream data_ss;
-//            data_ss << "Hello";
-//
-//            server.send(*it, data_ss);
-//        }
-//        sleep(5);
-//    }
 }
 
 WebServer::~WebServer() {

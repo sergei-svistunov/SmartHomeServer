@@ -15,7 +15,6 @@ int main(int argc, char* argv[]) {
 
     WebServer webServer(38080, X10Controller);
     webServer.start();
-
     webServer.join();
 
     return 0;

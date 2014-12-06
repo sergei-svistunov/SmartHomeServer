@@ -11,6 +11,7 @@ public:
     virtual ~MDTx07();
     virtual const string GetType() const {return "X10::MDTx07";}
     virtual JSON::Object GetInfo() const;
+    virtual void Notify(Command command, vector<uint8_t>& data);
 private:
     bool _is_on = false;
 };

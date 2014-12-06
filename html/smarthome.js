@@ -61,8 +61,14 @@ function initWS(scope) {
     scope.ws.onmessage = function(evt) {
         var message = JSON.parse(evt.data);
         console.log("Message", message);
-        if (message.type = 'devicesList') {
+        if (message.type == 'devicesList') {
             scope.devices = message.devices;
+        } else if (message.type == 'updateDevice') {
+            scope.devices.forEach(function(e){
+                if (e['address'] == message['device']['address']) {
+                    $.extend(e, message['device']);
+                }
+            });
         }
         scope.$apply();
     };
@@ -73,48 +79,3 @@ function initWS(scope) {
         scope.connecting = false;
     };
 }
-
-/*
-      function drawDashboard(devices) {
-          $('#dashboard').html('');
-          devices.forEach(function(device) {
-              console.log(device);
-              if (device{'type' == 'X10::MDTx07'}) {
-                  $('#dashboard').append('')
-              }
-          });
-      }
-
-      $('#reconnect-btn').on('click', function() {
-          initWS();
-      });
-
-      $('UI-slider').slider({
-          range: "min",
-          value: 1,
-          min: 1,
-          max: 23,
-          slide: function(event, ui) {
-              $("#volumeA1-label").text(Math.round($('#volumeA1').slider('value') / ($('#volumeA1').slider('option', 'max') - 1) * 100));
-          }
-      });
-      $('#btnA1').on('click', function() {
-          if ($(this).hasClass('active')) {
-              $('#volumeA1').slider('disable');
-              ws.send(JSON.stringify({
-                  device: 'A1',
-                  command: 'OFF'
-                })
-              );
-          } else {
-              $('#volumeA1').slider('enable');
-              ws.send(JSON.stringify({
-                  device: 'A1',
-                  command: 'ON'
-                })
-              );
-          }
-      });
-
-      initWS();
-*/

@@ -60,6 +60,11 @@ struct ClassAddressCmp {
     }
 };
 
+std::ostream& operator<<(std::ostream& os, HomeID home);
+std::ostream& operator<<(std::ostream& os, DeviceID device);
+std::ostream& operator<<(std::ostream& os, Command command);
+std::ostream& operator<<(std::ostream& os, Address address);
+
 class Controller;
 
 class BaseDevice {
@@ -70,6 +75,7 @@ public:
     const Address GetAddress() const {return _address;}
     virtual const string GetType() const {return "X10::Device";}
     virtual JSON::Object GetInfo() const;
+    virtual void Notify(Command command, vector<uint8_t>& data) {};
 private:
     Controller& _controller;
     Address _address;
@@ -85,11 +91,17 @@ public:
     Controller(string TTY);
     virtual ~Controller();
 
-    const DevicesVector GetDevices();
+    DevicesVector GetDevices();
+    BaseDevice* GetDeviceByAddr(Address address);
+
+    void Notify(Address address, Command command, vector<uint8_t>& data);
+    void Notify(Address address, Command command);
 
     void SendOff(HomeID home, DeviceID device);
     void SendOn(HomeID home, DeviceID device);
     void SendStatusRequest(HomeID home, DeviceID device);
+
+    function<void(Address address, Command command, vector<uint8_t>& data)> onUpdate = NULL;
 
 protected:
     bool SetAddr(HomeID home, DeviceID device, uint8_t repeats = 2);

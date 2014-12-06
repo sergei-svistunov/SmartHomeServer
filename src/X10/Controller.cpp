@@ -58,8 +58,8 @@ std::ostream& operator<<(std::ostream& os, uint8_t buffer[10]) {
 }
 
 /*
-*               BaseDevice
-*/
+ *               BaseDevice
+ */
 
 BaseDevice::BaseDevice(Controller& controller, Address address, string name) :
         _controller(controller), _address(address), _name(name) {
@@ -82,8 +82,8 @@ JSON::Object BaseDevice::GetInfo() const {
 }
 
 /*
-*               Controller
-*/
+ *               Controller
+ */
 
 Controller::Controller(string TTY) {
     _fd = open(TTY.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
@@ -132,29 +132,50 @@ Controller::~Controller() {
 
 }
 
-const DevicesVector Controller::GetDevices() {
+DevicesVector Controller::GetDevices() {
     DevicesVector result;
     result.reserve(_devices.size());
 
-    for (auto it=_devices.cbegin(); it != _devices.cend(); ++it)
+    for (auto it = _devices.cbegin(); it != _devices.cend(); ++it)
         result.push_back(it->second);
 
     return result;
 }
 
-//map<Address, BaseDevice*>::const_iterator Controller::GetDevicesIterator() {
-//    return _devices.cbegin();
-//}
+BaseDevice* Controller::GetDeviceByAddr(Address address) {
+    auto it = _devices.find(address);
+
+    if (it == _devices.end())
+        return NULL;
+
+    return it->second;
+}
+
+void Controller::Notify(Address address, Command command, vector<uint8_t>& data) {
+    BaseDevice* device = GetDeviceByAddr(address);
+    if (device) {
+        device->Notify(command, data);
+        if (onUpdate)
+            onUpdate(address, command, data);
+    }
+}
+
+void Controller::Notify(Address address, Command command) {
+    vector<uint8_t> data;
+    Notify(address, command, data);
+}
 
 void Controller::SendOff(HomeID home, DeviceID device) {
     _fdMutex.lock();
-    SetAddr(home, device) && SendCommand(home, Command::OFF);
+    if (SetAddr(home, device) && SendCommand(home, Command::OFF))
+        Notify( { home, device }, Command::OFF);
     _fdMutex.unlock();
 }
 
 void Controller::SendOn(HomeID home, DeviceID device) {
     _fdMutex.lock();
-    SetAddr(home, device) && SendCommand(home, Command::ON);
+    if (SetAddr(home, device) && SendCommand(home, Command::ON))
+        Notify( { home, device }, Command::ON);
     _fdMutex.unlock();
 }
 
@@ -261,7 +282,10 @@ void Controller::_RecieveData() {
     LOG(INFO)<< "    " << flags;
     for (auto i = 0; i < bytesCount - 1; ++i) {
         if (flags[i]) {
-            LOG(INFO)<< "      " << (Command)(buffer[i+1] & 0x0f) << ": " << _recievedAddresses;
+            Command command = (Command)(buffer[i+1] & 0x0f);
+            LOG(INFO)<< "      " << command << ": " << _recievedAddresses;
+            for (auto& address: _recievedAddresses)
+                Notify(address, command);
             _recievedAddresses.clear();
         } else {
             _recievedAddresses.push_back( {(HomeID)((buffer[i+1] >> 4) & 0x0f), (DeviceID)(buffer[i+1] & 0x0f)});

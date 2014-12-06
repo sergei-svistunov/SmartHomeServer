@@ -200,6 +200,17 @@ WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
         LOG(INFO) << "Server: Error in connection " << (size_t)connection.get() << ". " <<
         "Error: " << ec << ", error message: " << ec.message();
     };
+
+    _X10_Controller.onUpdate = [this](X10::Address address, X10::Command command, vector<uint8_t>& data) {
+        JSON::Object messageJSON;
+        messageJSON["type"] = "updateDevice";
+        messageJSON["device"] = _X10_Controller.GetDeviceByAddr(address)->GetInfo();
+        for (auto& connection: _server->get_connections()) {
+            stringstream data_ss;
+            data_ss << messageJSON;
+            _server->send(connection, data_ss);
+        }
+    };
 }
 
 WebServer::~WebServer() {

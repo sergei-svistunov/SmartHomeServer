@@ -12,7 +12,7 @@ using namespace SimpleWeb;
 
 class WebServer {
 public:
-    WebServer(uint16_t port, X10::Controller& X10_Controller);
+    WebServer(uint16_t port, string documentRoot, X10::Controller& X10_Controller);
     virtual ~WebServer();
     bool start();
     void join();

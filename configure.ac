@@ -15,6 +15,7 @@ AX_PTHREAD(, [AC_MSG_ERROR([smarthome needs pthread, but it was not found in you
 
 AX_BOOST_BASE([1.55],,[AC_MSG_ERROR([smarthome needs Boost, but it was not found in your system])])
 AX_BOOST_SYSTEM
+AX_BOOST_FILESYSTEM
 AX_BOOST_ASIO
 
 PKG_CHECK_MODULES([GLOG], [libglog >= 0.3.3])

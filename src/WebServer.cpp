@@ -118,9 +118,9 @@ bool intToX10Device(uint8_t device, X10::DeviceID& result) {
     return true;
 }
 
-WebServer::WebServer(uint16_t port, X10::Controller& X10_Controller) :
+WebServer::WebServer(uint16_t port, string documentRoot, X10::Controller& X10_Controller) :
         _X10_Controller(X10_Controller) {
-    _server = new SocketServer<WS>(port, 4);
+    _server = new SocketServer<WS>(port, 4, 5, 0, documentRoot);
 
     LOG(INFO)<< "Start server";
     auto& devices = _server->endpoint["^/devices/?$"];

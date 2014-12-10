@@ -14,8 +14,10 @@ int main(int argc, char* argv[]) {
     google::InitGoogleLogging(argv[0]);
 
     X10::Controller X10Controller("/tmp/remser1");
-//    X10::MDTx07 bedRoomDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D1 }, "Bedroom's light");
-//    X10::MDTx07 hallDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D2 }, "Hall's light");
+    X10::MDTx07 bedRoomDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D1 }, "Bedroom's light");
+    X10::MDTx07 hallDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D2 }, "Hall's light");
+    X10::MDTx07 kitchenDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D3 }, "Kitchen's light");
+    X10::MDTx07 childRoomDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D4 }, "Childroom's light");
 
     path binPath(initial_path<path>());
     binPath = system_complete(path(argv[0])).parent_path();

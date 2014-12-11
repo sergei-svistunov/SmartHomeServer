@@ -1,17 +1,21 @@
 #include <glog/logging.h>
 
 #include "WebServer.h"
+#include "VoiceControl.h"
 #include "X10/Controller.h"
 #include "X10/MDTx07.h"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
+#include <gst/gst.h>
+
 using namespace std;
 using namespace boost::filesystem;
 
 int main(int argc, char* argv[]) {
     google::InitGoogleLogging(argv[0]);
+    gst_init(&argc, &argv);
 
     X10::Controller X10Controller("/tmp/remser1");
     X10::MDTx07 bedRoomDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D1 }, "Bedroom's light");
@@ -24,6 +28,9 @@ int main(int argc, char* argv[]) {
 
     WebServer webServer(38080, binPath.generic_string() + "/../html", X10Controller);
     webServer.start();
+
+    VoiceControl voiceControl;
+
     webServer.join();
 
     return 0;

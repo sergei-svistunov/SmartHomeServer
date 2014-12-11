@@ -20,6 +20,7 @@ AX_BOOST_ASIO
 
 PKG_CHECK_MODULES([GLOG], [libglog >= 0.3.3])
 PKG_CHECK_MODULES([OPENSSL], [openssl >= 1.0.0])
+PKG_CHECK_MODULES([GSTREAMER], [gstreamer-1.0 >= 1.2.0])
 
 AC_CONFIG_FILES(Makefile src/Makefile)
 AC_OUTPUT

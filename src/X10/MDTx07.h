@@ -14,6 +14,7 @@ public:
     virtual void Notify(Command command, vector<uint8_t>& data);
 private:
     bool _is_on = false;
+    int8_t _volume = -1;
 };
 
 } /* namespace X10 */

@@ -18,7 +18,7 @@ JSON::Object MDTx07::GetInfo() const {
     auto result = BaseDevice::GetInfo();
 
     result["is_on"] = _is_on;
-    result["volume"] = 0;
+    result["volume"] = _volume;
 
     return result;
 }
@@ -28,6 +28,8 @@ void MDTx07::Notify(Command command, vector<uint8_t>& data) {
         _is_on = true;
     else if (command == Command::OFF || command == Command::STATUS_OFF)
         _is_on = false;
+    else if (command == Command::EXTENDED && data[1] == 0x31)
+        _volume = data[0];
 }
 
 } /* namespace X10 */

@@ -14,6 +14,9 @@ smartHomeApp.directive('slider', ['$parse', function($parse) {
                     scope.$apply(function() {
                         $parse(attrs.ngModel).assign(scope, ui.value);
                     });
+                    if (attrs.ngChange) {
+                        scope.$eval(attrs.ngChange, {$event: event, $ui: ui});
+                    }
                 }
             });
         }
@@ -36,6 +39,14 @@ smartHomeApp.controller('DevicesList', function ($scope) {
         }));
         this.device['is_on'] = !this.device['is_on'];
     };
+
+    $scope.X10_MDTx07__slide = function(event, ui) {
+        $scope.ws.send(JSON.stringify({
+            device: this.device['address'],
+            command: 'PRESET_DIM',
+            volume: this.device['volume']
+        }));
+    }
 
     initWS($scope);
 });

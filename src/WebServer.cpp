@@ -169,6 +169,10 @@ WebServer::WebServer(uint16_t port, string documentRoot, X10::Controller& X10_Co
             _X10_Controller.SendOn(X10_Home, X10_Device);
         else if (command == "OFF")
             _X10_Controller.SendOff(X10_Home, X10_Device);
+        else if (command == "DIM")
+            _X10_Controller.SendDim(X10_Home, X10_Device, data["volume"].as_int());
+        else if (command == "PRESET_DIM")
+            _X10_Controller.SendPresetDim(X10_Home, X10_Device, data["volume"].as_int());
         else {
             LOG(INFO) << "Invalid command: " << command;
         }

@@ -99,6 +99,8 @@ public:
 
     void SendOff(HomeID home, DeviceID device);
     void SendOn(HomeID home, DeviceID device);
+    void SendDim(HomeID home, DeviceID device, uint8_t volume);
+    void SendPresetDim(HomeID home, DeviceID device, uint8_t volume);
     void SendStatusRequest(HomeID home, DeviceID device);
 
     function<void(Address address, Command command, vector<uint8_t>& data)> onUpdate = NULL;
@@ -106,6 +108,7 @@ public:
 protected:
     bool SetAddr(HomeID home, DeviceID device, uint8_t repeats = 2);
     bool SendCommand(HomeID home, Command command, uint8_t repeats = 2);
+    bool SendExtendedCommand(HomeID home, DeviceID device, uint8_t data, uint8_t function, uint8_t repeats = 2);
 
 private:
     uint8_t _GetHeader(uint8_t repeats, HeaderType type, bool extended) {

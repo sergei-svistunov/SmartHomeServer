@@ -179,6 +179,26 @@ void Controller::SendOn(HomeID home, DeviceID device) {
     _fdMutex.unlock();
 }
 
+void Controller::SendDim(HomeID home, DeviceID device, uint8_t volume) {
+    _fdMutex.lock();
+    if (SetAddr(home, device) && SendCommand(home, Command::DIM)) {
+        vector<uint8_t> data = { volume };
+        Notify( { home, device }, Command::DIM, data);
+    }
+    _fdMutex.unlock();
+}
+
+void Controller::SendPresetDim(HomeID home, DeviceID device, uint8_t volume) {
+    if (volume > 0x3f)
+        volume = 0x3f;
+    _fdMutex.lock();
+    if (SendExtendedCommand(home, device, volume, 0x31)) {
+        vector<uint8_t> data = { volume, 0x31 };
+        Notify( { home, device }, Command::EXTENDED, data);
+    }
+    _fdMutex.unlock();
+}
+
 void Controller::SendStatusRequest(HomeID home, DeviceID device) {
     _fdMutex.lock();
     SetAddr(home, device) && SendCommand(home, Command::STATUS_REQUEST);
@@ -201,6 +221,15 @@ bool Controller::SendCommand(HomeID home, Command command, uint8_t repeats) {
     LOG(INFO)<< "Send command " << home << " " << command;
 
     return _WriteWithConfirm(data, 2);
+}
+
+bool Controller::SendExtendedCommand(HomeID home, DeviceID device, uint8_t data, uint8_t function, uint8_t repeats) {
+    uint8_t buffer[5] = { _GetHeader(repeats, HeaderType::FUNCTION, true), (uint8_t) ((uint8_t) home << 4
+            | (uint8_t) Command::EXTENDED), (uint8_t) ((uint8_t) device & 0x0f), data, function };
+
+    LOG(INFO)<< "Send extended command " << home << device << " Function(" << (unsigned int)function << ") Data(" << (unsigned int)data << ")";
+
+    return _WriteWithConfirm(buffer, 5);
 }
 
 bool Controller::_WriteWithConfirm(void* buffer, size_t length) {
@@ -282,13 +311,14 @@ void Controller::_RecieveData() {
     LOG(INFO)<< "    " << flags;
     for (auto i = 0; i < bytesCount - 1; ++i) {
         if (flags[i]) {
-            Command command = (Command)(buffer[i+1] & 0x0f);
+            Command command = (Command) (buffer[i + 1] & 0x0f);
             LOG(INFO)<< "      " << command << ": " << _recievedAddresses;
-            for (auto& address: _recievedAddresses)
+            for (auto& address : _recievedAddresses)
                 Notify(address, command);
             _recievedAddresses.clear();
         } else {
-            _recievedAddresses.push_back( {(HomeID)((buffer[i+1] >> 4) & 0x0f), (DeviceID)(buffer[i+1] & 0x0f)});
+            _recievedAddresses.push_back(
+                    { (HomeID) ((buffer[i + 1] >> 4) & 0x0f), (DeviceID) (buffer[i + 1] & 0x0f) });
         }
     }
 

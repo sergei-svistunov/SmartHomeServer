@@ -8,7 +8,7 @@ public:
     VoiceControl();
     virtual ~VoiceControl();
 private:
-    GstElement *_pipeline, *_source, *_sink;
+    GstElement *_pipeline, *_source, *_wavenc, *_sink;
 };
 
 #endif /* VOICECONTROL_H_ */

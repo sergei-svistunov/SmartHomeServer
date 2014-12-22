@@ -41,7 +41,7 @@ AC_ARG_WITH(
 )
 
 AC_SUBST(SPOTTER_CPPFLAGS)
-AC_CHECK_HEADER([$ac_spotter_dir/libspotter/spotter.h], SPOTTER_CPPFLAGS=[-I$ac_spotter_dir], AC_MSG_ERROR("spotter.h not found"))
+AC_CHECK_HEADER([$ac_spotter_dir/libspotter/spotter.h], SPOTTER_CPPFLAGS="-I$ac_spotter_dir -DSPOTTER_CONF=\\\"$ac_spotter_dir/gertruda\\\"", AC_MSG_ERROR("spotter.h not found"))
 AC_SUBST(SPOTTER_LDFLAGS)
 AC_CHECK_FILE([$ac_spotter_dir/libspotter/libspotter.a], SPOTTER_LDFLAGS="$ac_spotter_dir/libspotter/libspotter.a $ac_spotter_dir/libtask/libtask.a $ac_spotter_dir/webrtc_vad/webrtc_vad.a", AC_MSG_ERROR("libspotter.a not found"))
 

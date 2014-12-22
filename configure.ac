@@ -21,6 +21,29 @@ AX_BOOST_ASIO
 PKG_CHECK_MODULES([GLOG], [libglog >= 0.3.3])
 PKG_CHECK_MODULES([OPENSSL], [openssl >= 1.0.0])
 PKG_CHECK_MODULES([GSTREAMER], [gstreamer-1.0 >= 1.2.0])
+PKG_CHECK_MODULES([GSTREAMER_BASE], [gstreamer-base-1.0 >= 1.2.0])
+PKG_CHECK_MODULES([GSTREAMER_APP], [gstreamer-app-1.0 >= 1.2.0])
+
+AC_ARG_WITH(
+    [spotter-dir],
+    AS_HELP_STRING(
+        [--with-spotter-dir=LIB_DIR],
+        [Directory with spotter lib and header files]),
+        [
+            if test -d "$withval"
+            then
+                ac_spotter_dir="$withval"
+            else
+                AC_MSG_ERROR(--with-spotter-dir expected directory name)
+            fi
+        ],
+        [ac_spotter_dir=""]
+)
+
+AC_SUBST(SPOTTER_CPPFLAGS)
+AC_CHECK_HEADER([$ac_spotter_dir/libspotter/spotter.h], SPOTTER_CPPFLAGS=[-I$ac_spotter_dir], AC_MSG_ERROR("spotter.h not found"))
+AC_SUBST(SPOTTER_LDFLAGS)
+AC_CHECK_FILE([$ac_spotter_dir/libspotter/libspotter.a], SPOTTER_LDFLAGS="$ac_spotter_dir/libspotter/libspotter.a $ac_spotter_dir/libtask/libtask.a $ac_spotter_dir/webrtc_vad/webrtc_vad.a", AC_MSG_ERROR("libspotter.a not found"))
 
 AC_CONFIG_FILES(Makefile src/Makefile)
 AC_OUTPUT

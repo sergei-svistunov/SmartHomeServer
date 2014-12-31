@@ -53,7 +53,7 @@ smartHomeApp.controller('DevicesList', function ($scope) {
 
 function initWS(scope) {
     scope.connecting = true;
-    scope.ws = new WebSocket("ws://localhost:38080/devices/");
+    scope.ws = new WebSocket("ws://" + location.host + "/devices/");
 
     scope.ws.onopen = function(evt) {
         console.log("Opened", evt);

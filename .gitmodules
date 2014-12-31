@@ -1,6 +1,6 @@
 [submodule "simple_ws_server"]
 	path = simple_ws_server
-	url = https://github.com/eidheim/Simple-WebSocket-Server.git
+	url = https://github.com/sergei-svistunov/Simple-WebSocket-Server.git
 [submodule "json"]
 	path = json
-	url = git@github.com:tunnuz/json.git
+	url = https://github.com/tunnuz/json.git

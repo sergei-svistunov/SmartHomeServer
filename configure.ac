@@ -23,6 +23,8 @@ PKG_CHECK_MODULES([OPENSSL], [openssl >= 1.0.0])
 PKG_CHECK_MODULES([GSTREAMER], [gstreamer-1.0 >= 1.2.0])
 PKG_CHECK_MODULES([GSTREAMER_BASE], [gstreamer-base-1.0 >= 1.2.0])
 PKG_CHECK_MODULES([GSTREAMER_APP], [gstreamer-app-1.0 >= 1.2.0])
+PKG_CHECK_MODULES([TORRENT], [libtorrent >= 0.13.2])
+PKG_CHECK_MODULES([SIGCPP], [sigc++-2.0 >= 2.2.10])
 
 AC_ARG_WITH(
     [spotter-dir],

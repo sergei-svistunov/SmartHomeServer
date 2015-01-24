@@ -1,0 +1,24 @@
+<div class="container">
+  <div id="dashboard" class="row" ng-show="connected">
+    <div class="col-xs-3 well" ng-repeat="device in devices" ng-switch="device.type">
+      <div ng-switch-when="X10::MDTx07">
+        <div style="margin-bottom: 10px;" slider="" range="min" min="1" max="63" step="1" ng-model="device.volume" ng-change="X10_MDTx07__slide($event, $ui)"></div>
+        <button class="btn btn-lg btn-block" ng-class="{true: 'btn-success', false: ''}[device.is_on]" ng-click="X10_MDTx07__btn_click($event)">
+          {{device.name}} ({{device.volume / 63 * 100 | number:0}}%)
+        </button>
+      </div>
+
+      <div ng-switch-default>Unknown device "{{device.type}}"</div>
+    </div>
+  </div>
+
+  <div id="connect-dlg" class="row" ng-hide="connected">
+    <div class="alert alert-danger" role="alert">
+      <strong>No connection to SmartHome!</strong><br>
+      <button type="button" class="btn btn-primary" data-loading-text="Connecting..." autocomplete="off" ng-click="reconnect()" ng-disabled="connecting">
+        <span ng-hide="connecting">Reconnect</span>
+        <span ng-show="connecting">Connecting...</span>
+      </button>
+    </div>
+  </div>
+</div>

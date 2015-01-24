@@ -89,7 +89,7 @@ Controller::Controller(string TTY) {
     _fd = open(TTY.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
     if (_fd == -1) {
-        throw runtime_error("Cannot open " + TTY);
+        return;
     } else {
         fcntl(_fd, F_SETFL, 0);
     }

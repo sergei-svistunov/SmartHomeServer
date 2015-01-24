@@ -13,7 +13,7 @@ AC_PROG_CXX
 
 AX_PTHREAD(, [AC_MSG_ERROR([smarthome needs pthread, but it was not found in your system])])
 
-AX_BOOST_BASE([1.55],,[AC_MSG_ERROR([smarthome needs Boost, but it was not found in your system])])
+AX_BOOST_BASE([1.54],,[AC_MSG_ERROR([smarthome needs Boost, but it was not found in your system])])
 AX_BOOST_SYSTEM
 AX_BOOST_FILESYSTEM
 AX_BOOST_ASIO
@@ -23,6 +23,7 @@ PKG_CHECK_MODULES([OPENSSL], [openssl >= 1.0.0])
 PKG_CHECK_MODULES([GSTREAMER], [gstreamer-1.0 >= 1.2.0])
 PKG_CHECK_MODULES([GSTREAMER_BASE], [gstreamer-base-1.0 >= 1.2.0])
 PKG_CHECK_MODULES([GSTREAMER_APP], [gstreamer-app-1.0 >= 1.2.0])
+PKG_CHECK_MODULES([TORRENT], [libtorrent-rasterbar >= 0.16.0])
 
 AC_ARG_WITH(
     [spotter-dir],

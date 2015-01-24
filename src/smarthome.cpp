@@ -4,9 +4,12 @@
 #include "VoiceControl.h"
 #include "X10/Controller.h"
 #include "X10/MDTx07.h"
+#include "Torrent.h"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+
+#include <boost/asio/impl/src.hpp>
 
 #include <gst/gst.h>
 
@@ -17,20 +20,24 @@ int main(int argc, char* argv[]) {
     google::InitGoogleLogging(argv[0]);
     gst_init(&argc, &argv);
 
-    X10::Controller X10Controller("/tmp/remser1");
+    path binPath(initial_path<path>());
+    binPath = system_complete(path(argv[0])).parent_path();
+
+    X10::Controller X10Controller("/dev/ttyUSB0");
     X10::MDTx07 bedRoomDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D1 }, "Bedroom's light");
     X10::MDTx07 hallDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D2 }, "Hall's light");
     X10::MDTx07 kitchenDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D3 }, "Kitchen's light");
     X10::MDTx07 childRoomDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D4 }, "Childroom's light");
 
-    path binPath(initial_path<path>());
-    binPath = system_complete(path(argv[0])).parent_path();
+    Torrent torrent;
+    torrent.start();
 
-    WebServer webServer(38080, binPath.generic_string() + "/../html", X10Controller);
+    WebServer webServer(38080, binPath.generic_string() + "/../html", X10Controller, torrent);
     webServer.start();
 
     VoiceControl voiceControl;
 
+    torrent.join();
     webServer.join();
 
     return 0;

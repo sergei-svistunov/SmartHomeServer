@@ -1,4 +1,6 @@
-var smartHomeApp = angular.module('SmartHome', []);
+var smartHomeApp = angular.module('SmartHome', ['ngRoute']);
+
+var WS;
 
 smartHomeApp.directive('slider', ['$parse', function($parse) {
     return {
@@ -23,13 +25,48 @@ smartHomeApp.directive('slider', ['$parse', function($parse) {
     };
 }]);
 
+smartHomeApp.filter('rateText', function($filter) {
+    return function(input) {
+        if (input < 1024) {
+            return $filter('number')(input, 0) + ' b/s';
+        } else if (input < 1024 * 1024) {
+            return $filter('number')(input / 1024, 2) + ' kb/s';
+        } else if (input < 1024 * 1024 * 1024) {
+            return $filter('number')(input / 1024 / 1024, 2) + ' mb/s';
+        };
+    }
+});
+
+smartHomeApp.config(['$routeProvider',
+  function($routeProvider) {
+    $routeProvider.
+      when('/devices', {
+        templateUrl: 'view/devices.html',
+        controller: 'DevicesList'
+      }).
+      when('/torrents', {
+        templateUrl: 'view/torrents.html',
+        controller: 'TorrentsList'
+      }).
+      otherwise({
+        redirectTo: '/devices'
+      });
+  }
+]);
+
+smartHomeApp.controller('HeaderController', function ($scope, $location) {
+    $scope.isActive = function (viewLocation) {
+        return viewLocation === $location.path();
+    };
+});
+
 smartHomeApp.controller('DevicesList', function ($scope) {
     $scope.connected = false;
     $scope.connecting = false;
     $scope.devices = [];
 
     $scope.reconnect = function() {
-        initWS($scope);
+        initDevicesWS($scope);
     };
 
     $scope.X10_MDTx07__btn_click = function(event) {
@@ -46,14 +83,55 @@ smartHomeApp.controller('DevicesList', function ($scope) {
             command: 'PRESET_DIM',
             volume: this.device['volume']
         }));
-    }
+    };
 
-    initWS($scope);
+    initDevicesWS($scope);
 });
 
-function initWS(scope) {
+smartHomeApp.controller('TorrentsList', function ($scope) {
+    $scope.reconnect = function() {
+        initTorrentsWS($scope);
+    };
+
+    $scope.addTorrentSsubmit = function(event) {
+        var fileReader = new FileReader();
+
+        fileReader.onload = function() {
+            $scope.ws.send(fileReader.result);
+            event.target.elements.torrentFile.value = '';
+        };
+
+        fileReader.readAsArrayBuffer(event.target.elements.torrentFile.files[0]);
+        $(event.target.parentNode).modal('hide');
+    };
+
+    $scope.startTorrent = function() {
+        $scope.ws.send(JSON.stringify({
+            command: 'START_TORRENT',
+            id: this.torrent.id
+        }));
+    };
+
+    $scope.pauseTorrent = function() {
+        $scope.ws.send(JSON.stringify({
+            command: 'PAUSE_TORRENT',
+            id: this.torrent.id
+        }));
+    };
+
+    $scope.deleteTorrent = function() {
+        $scope.ws.send(JSON.stringify({
+            command: 'DELETE_TORRENT',
+            id: this.torrent.id
+        }));
+    };
+
+    initTorrentsWS($scope);
+});
+
+function _initWS(scope, url, onMessage) {
     scope.connecting = true;
-    scope.ws = new WebSocket("ws://" + location.host + "/devices/");
+    scope.ws = WS = new WebSocket(url);
 
     scope.ws.onopen = function(evt) {
         console.log("Opened", evt);
@@ -69,7 +147,17 @@ function initWS(scope) {
         scope.$apply();
     };
 
-    scope.ws.onmessage = function(evt) {
+    scope.ws.onmessage = onMessage;
+
+    scope.ws.onerror = function(evt) {
+        console.log("Error", evt);
+        scope.connected = false;
+        scope.connecting = false;
+    };
+}
+
+function initDevicesWS(scope) {
+    _initWS(scope, "ws://" + location.host + "/devices/", function(evt) {
         var message = JSON.parse(evt.data);
         console.log("Message", message);
         if (message.type == 'devicesList') {
@@ -82,11 +170,14 @@ function initWS(scope) {
             });
         }
         scope.$apply();
-    };
+    });
+}
 
-    scope.ws.onerror = function(evt) {
-        console.log("Error", evt);
-        scope.connected = false;
-        scope.connecting = false;
-    };
+function initTorrentsWS(scope) {
+    _initWS(scope, "ws://" + location.host + "/torrents/", function(evt) {
+        var message = JSON.parse(evt.data);
+//        console.log("Message", message);
+        scope.torrents = message.torrents;
+        scope.$apply();
+    });
 }

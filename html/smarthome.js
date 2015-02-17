@@ -12,7 +12,7 @@ smartHomeApp.directive('slider', ['$parse', function($parse) {
                 min: parseInt(attrs.min),
                 max: parseInt(attrs.max),
                 step: parseFloat(attrs.step),
-                slide: function(event, ui) {
+                change: function(event, ui) {
                     scope.$apply(function() {
                         $parse(attrs.ngModel).assign(scope, ui.value);
                     });
@@ -77,7 +77,7 @@ smartHomeApp.controller('DevicesList', function ($scope) {
         this.device['is_on'] = !this.device['is_on'];
     };
 
-    $scope.X10_MDTx07__slide = function(event, ui) {
+    $scope.X10_MDTx07__change = function(event, ui) {
         $scope.ws.send(JSON.stringify({
             device: this.device['address'],
             command: 'PRESET_DIM',

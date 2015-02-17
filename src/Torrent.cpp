@@ -5,13 +5,11 @@
 #include <libtorrent/alert_types.hpp>
 #include <libtorrent/torrent_handle.hpp>
 #include <libtorrent/peer_info.hpp>
-/*
 #include <libtorrent/upnp.hpp>
 #include <libtorrent/natpmp.hpp>
 #include <libtorrent/extensions/smart_ban.hpp>
 #include <libtorrent/extensions/ut_metadata.hpp>
 #include <libtorrent/extensions/ut_pex.hpp>
-*/
 
 #include <stdexcept>
 #include <vector>
@@ -23,41 +21,26 @@ Torrent::Torrent() {
     _session = new libtorrent::session(libtorrent::fingerprint("HS", 1, 0, 0, 0), make_pair(16881, 16889), "0.0.0.0", 0,
             libtorrent::alert::tracker_notification | libtorrent::alert::error_notification);
 
-//    _session->set_alert_mask(libtorrent::alert::all_categories & ~libtorrent::alert::stats_notification);
-//    _session->set_alert_mask(libtorrent::alert::error_notification);
-
     auto settings = _session->settings();
-    settings.user_agent = "HomeServer/1.0.0 libtorrent/0.16.13";
+    settings.user_agent = PACKAGE_STRING " libtorrent/" LIBTORRENT_VERSION;
     settings.num_want = 10000;
     settings.announce_to_all_trackers = true;
     settings.announce_to_all_tiers = true;
     _session->set_settings(settings);
 
-//    auto upnp = _session->start_upnp();
-//    upnp->add_mapping(libtorrent::upnp::tcp, 6881, 6889);
+    _session->start_upnp();
+   _session->start_dht();
+    _session->add_dht_router(make_pair(string("router.bittorrent.com"), 6881));
+    _session->add_dht_router(make_pair(string("router.utorrent.com"), 6881));
+    _session->add_dht_router(make_pair(string("dht.transmissionbt.com"), 6881));
+    _session->add_dht_router(make_pair(string("dht.aelitis.com"), 6881));
 
-//    _session->listen_on(make_pair(16881, 16889), ec, "0.0.0.0", libtorrent::session::listen_no_system_port);
-//    if (ec)
-//        throw runtime_error("failed to open listen socket: " + ec.message());
+    _session->start_lsd();
+    _session->start_natpmp();
 
-//    addFile("/home/svistunov/Загрузки/ubuntu-14.04.1-desktop-amd64.iso.torrent");
-//    addFile("/home/svistunov/Загрузки/2014-12-24-wheezy-raspbian.zip.torrent");
-
-//    _session->start_dht();
-//    _session->add_dht_router(make_pair(string("router.bittorrent.com"), 6881));
-//    _session->add_dht_router(make_pair(string("router.utorrent.com"), 6881));
-//    _session->add_dht_router(make_pair(string("dht.transmissionbt.com"), 6881));
-//    _session->add_dht_router(make_pair(string("dht.aelitis.com"), 6881));
-//
-//    _session->start_lsd();
-//    auto natpmp = _session->start_natpmp();
-//    natpmp->add_mapping(libtorrent::natpmp::tcp, 6881, 6889);
-
-    /*
      _session->add_extension(&libtorrent::create_smart_ban_plugin);
      _session->add_extension(&libtorrent::create_ut_metadata_plugin);
      _session->add_extension(&libtorrent::create_ut_pex_plugin);
-     */
 }
 
 Torrent::~Torrent() {
@@ -67,7 +50,7 @@ Torrent::~Torrent() {
 bool Torrent::start() {
     _serverThread = new thread([this]() {
         while (true)
-            if (_session->wait_for_alert(libtorrent::time_duration(1000000))) { // 1 sec
+        if (_session->wait_for_alert(libtorrent::time_duration(1000000))) { // 1 sec
                 auto alert = _session->pop_alert();
                 LOG(INFO) << alert.get()->what() << "\t" << alert.get()->message();
             } else {
@@ -89,7 +72,7 @@ bool Torrent::AddFile(string filename) {
     libtorrent::error_code ec;
 
     addParams.save_path = "/tmp/";
-    addParams.auto_managed = true;
+    addParams.auto_managed = false;
     addParams.paused = false;
     addParams.ti = new libtorrent::torrent_info(filename, ec);
     if (ec) {
@@ -231,7 +214,7 @@ JSON::Object Torrent::GetInfo() {
         JSON::Array peersJSON;
         vector<libtorrent::peer_info> peersVector;
         torrent.get_peer_info(peersVector);
-        for (auto& peer: peersVector) {
+        for (auto& peer : peersVector) {
             JSON::Object peerJSON;
             peerJSON["client"] = peer.client;
             peerJSON["downloaded"] = peer.total_download;

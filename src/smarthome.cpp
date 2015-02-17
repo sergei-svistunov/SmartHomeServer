@@ -30,10 +30,11 @@ int main(int argc, char* argv[]) {
     X10::MDTx07 childRoomDimmer(X10Controller, { X10::HomeID::A, X10::DeviceID::D4 }, "Childroom's light");
 
     Torrent torrent;
-    torrent.start();
 
     WebServer webServer(38080, binPath.generic_string() + "/../html", X10Controller, torrent);
+
     webServer.start();
+    torrent.start();
 
     VoiceControl voiceControl;
 

@@ -119,11 +119,13 @@ bool intToX10Device(uint8_t device, X10::DeviceID& result) {
 
 WebServer::WebServer(uint16_t port, string documentRoot, X10::Controller& X10_Controller, Torrent& torrent) :
         _X10_Controller(X10_Controller), _torrent(torrent) {
+
     _server = new SocketServer<WS>(port, 4, 5, 0, documentRoot);
 
     LOG(INFO)<< "Start server";
     _endPointDevices();
     _endPointTorrents();
+
 }
 
 WebServer::~WebServer() {

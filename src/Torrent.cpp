@@ -15,7 +15,7 @@
 #include <vector>
 #include <sstream>
 
-Torrent::Torrent() {
+Torrent::Torrent(string savePath) : _savePath(savePath) {
     libtorrent::error_code ec;
 
     _session = new libtorrent::session(libtorrent::fingerprint("HS", 1, 0, 0, 0), make_pair(16881, 16889), "0.0.0.0", 0,
@@ -71,7 +71,7 @@ bool Torrent::AddFile(string filename) {
     memchr(&addParams, 0, sizeof(libtorrent::add_torrent_params));
     libtorrent::error_code ec;
 
-    addParams.save_path = "/tmp/";
+    addParams.save_path = _savePath;
     addParams.auto_managed = false;
     addParams.paused = false;
     addParams.ti = new libtorrent::torrent_info(filename, ec);
@@ -94,7 +94,7 @@ bool Torrent::AddString(string& buffer) {
     memchr(&addParams, 0, sizeof(libtorrent::add_torrent_params));
     libtorrent::error_code ec;
 
-    addParams.save_path = "/tmp/";
+    addParams.save_path = _savePath;
     addParams.auto_managed = false;
     addParams.paused = false;
     addParams.ti = new libtorrent::torrent_info(buffer.c_str(), buffer.length(), ec);

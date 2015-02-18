@@ -5,6 +5,7 @@ BUILT_SOURCES=../json/build/json.tab.hh
 bin_PROGRAMS=smarthome.server
 
 smarthome_server_SOURCES = smarthome.cpp \
+ Config.cpp Config.h \
  WebServer.cpp WebServer.h \
  VoiceControl.cpp VoiceControl.h \
  X10/Controller.cpp X10/Controller.h \

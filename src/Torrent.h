@@ -12,7 +12,7 @@ using namespace std;
 
 class Torrent {
 public:
-    Torrent();
+    Torrent(string savePath);
     virtual ~Torrent();
 
     bool start();
@@ -31,6 +31,7 @@ public:
 private:
     libtorrent::session* _session;
     thread* _serverThread = NULL;
+    string _savePath;
 };
 
 #endif /* TORRENT_H_ */

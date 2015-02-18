@@ -11,6 +11,9 @@
 using namespace std;
 using namespace SimpleWeb;
 
+bool charToX10Home(char home, X10::HomeID& result);
+bool intToX10Device(uint8_t device, X10::DeviceID& result);
+
 class WebServer {
 public:
     WebServer(uint16_t port, string documentRoot, X10::Controller& X10_Controller, Torrent& torrent);

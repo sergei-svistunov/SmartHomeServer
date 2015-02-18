@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     Config config(binPath.generic_string() + "/config.json");
 
     X10::Controller X10Controller(config.GetX10ControllerTTY());
-    list<X10::BaseDevice> X10Devices;
+    list<X10::BaseDevice*> X10Devices;
     for (auto& device: config.GetX10Devices()) {
         X10::HomeID home;
         if (!charToX10Home(device.home, home))
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
             throw runtime_error("Invalid id " + device.id);
 
         if (device.type == "MDTx07")
-            X10Devices.emplace_back(X10::MDTx07(X10Controller, {home, id}, device.caption));
+            X10Devices.push_back(new X10::MDTx07(X10Controller, {home, id}, device.caption));
         else
             throw runtime_error("Invalid type " + device.type);
     }
@@ -54,6 +54,9 @@ int main(int argc, char* argv[]) {
 
     torrent.join();
     webServer.join();
+
+    for (auto& device: X10Devices)
+        delete device;
 
     return 0;
 }

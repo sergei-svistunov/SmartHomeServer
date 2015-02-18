@@ -131,6 +131,9 @@ smartHomeApp.controller('TorrentsList', function ($scope) {
 
 function _initWS(scope, url, onMessage) {
     scope.connecting = true;
+    if (WS) {
+        WS.close();
+    }
     scope.ws = WS = new WebSocket(url);
 
     scope.ws.onopen = function(evt) {
@@ -159,7 +162,7 @@ function _initWS(scope, url, onMessage) {
 function initDevicesWS(scope) {
     _initWS(scope, "ws://" + location.host + "/devices/", function(evt) {
         var message = JSON.parse(evt.data);
-        console.log("Message", message);
+        //console.log("Message", message);
         if (message.type == 'devicesList') {
             scope.devices = message.devices;
         } else if (message.type == 'updateDevice') {
@@ -176,7 +179,7 @@ function initDevicesWS(scope) {
 function initTorrentsWS(scope) {
     _initWS(scope, "ws://" + location.host + "/torrents/", function(evt) {
         var message = JSON.parse(evt.data);
-//        console.log("Message", message);
+        //console.log("Message", message);
         scope.torrents = message.torrents;
         scope.$apply();
     });

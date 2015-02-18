@@ -148,7 +148,8 @@ void WebServer::join() {
 }
 
 void WebServer::_endPointDevices() {
-    auto& devices = _server->endpoint["^/devices/?$"];
+    string epReStr = "^/devices/?$";
+    auto& devices = _server->endpoint[epReStr];
 
     devices.onmessage =
             [this](auto connection, auto message) {
@@ -229,11 +230,15 @@ void WebServer::_endPointDevices() {
         "Error: " << ec << ", error message: " << ec.message();
     };
 
-    _X10_Controller.onUpdate = [this](X10::Address address, X10::Command command, vector<uint8_t>& data) {
+    regex re(epReStr);
+    _X10_Controller.onUpdate = [this, re](X10::Address address, X10::Command command, vector<uint8_t>& data) {
         JSON::Object messageJSON;
         messageJSON["type"] = "updateDevice";
         messageJSON["device"] = _X10_Controller.GetDeviceByAddr(address)->GetInfo();
         for (auto& connection: _server->get_connections()) {
+            if (!regex_match(connection.get()->path, re))
+                continue;
+
             stringstream data_ss;
             data_ss << messageJSON;
             _server->send(connection, data_ss);
@@ -242,7 +247,8 @@ void WebServer::_endPointDevices() {
 }
 
 void WebServer::_endPointTorrents() {
-    auto& torrents = _server->endpoint["^/torrents/?$"];
+    string epReStr = "^/torrents/?$";
+    auto& torrents = _server->endpoint[epReStr];
 
     torrents.onmessage = [this](auto connection, auto message) {
         string strData(istreambuf_iterator<char>(message->data), istreambuf_iterator<char>());
@@ -302,8 +308,12 @@ void WebServer::_endPointTorrents() {
         "Error: " << ec << ", error message: " << ec.message();
     };
 
-    _torrent.onUpdate = [this](JSON::Object infoJSON) {
+    regex re(epReStr);
+    _torrent.onUpdate = [this, re](JSON::Object infoJSON) {
         for (auto& connection: _server->get_connections()) {
+            if (!regex_match(connection.get()->path, re))
+                continue;
+
             stringstream data_ss;
             data_ss << infoJSON;
             _server->send(connection, data_ss);
